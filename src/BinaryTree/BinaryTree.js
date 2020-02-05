@@ -267,10 +267,9 @@ class BinaryTree extends HeapSort {
      * @return {Array}
      */
     levelTraverse (tree) {
-
+        // 分层，每层放一个数组
         let buckets = [[tree]]
         let i = 0
-
         // 递归，
         function tempFunction (node, i) {
             i++
@@ -301,5 +300,6 @@ class BinaryTree extends HeapSort {
         })
         return  backs
     }
+
 }
 module.exports=BinaryTree
