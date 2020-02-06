@@ -1,6 +1,7 @@
 const {swap} = require('../utils')
 const HeapSort = require('./HeapSort')
 const Node = require('./Node')
+
 /**
  * 二叉树
  */
@@ -209,6 +210,44 @@ class BinaryTree extends HeapSort {
         return backs
     }
 
+    preOrderTraverse2 (node = this.tree) {
+        let backs = []
+        if (!node) {
+            return backs
+        }
+        let queue = [node]
+        while (queue.length) {
+            // 取出最后一个结点，对这个结点进行遍历
+            let root = queue.pop()
+            backs.push(root.data)
+            // 因为queue.pop，所以先存入右结点
+            root.rightChild && queue.push(root.rightChild)
+            root.leftChild && queue.push(root.leftChild)
+        }
+        return backs
+    }
+
+    preOrderTraverse3 (node = this.tree) {
+        let backs = []
+        if (!node) {
+            return backs
+        }
+        let currentNode = node
+        let queue = [node]
+        while (queue.length) {
+            if (currentNode) {
+                backs.push(currentNode.data)
+                queue.push(currentNode)
+                currentNode = currentNode.leftChild
+            } else {
+                currentNode = queue.pop()
+                currentNode = currentNode.rightChild
+            }
+        }
+        return backs
+    }
+
+
     /**
      * @description 后序遍历 =>左根右
      *  1.访问左子树。（先访问左子树中的左子树，再访问左子树中的右子树）
@@ -233,6 +272,75 @@ class BinaryTree extends HeapSort {
         }
 
         tempFunction(node)
+        return backs
+    }
+
+    // 非递归实现
+    postOrderTraverse2 (node) {
+        let backs = []
+        if (!node) {
+            return backs
+        }
+        let stack = []
+        let currentNode = node
+        while (stack.length||currentNode) {
+            if (currentNode) {
+                stack.push(currentNode)
+                backs .unshift(currentNode.data)
+                currentNode = currentNode.rightChild
+            } else {
+                let temp = stack.pop()
+                currentNode = temp.leftChild
+
+            }
+        }
+        return backs
+    }
+
+    // 非递归实现
+    postOrderTraverse3 (node) {
+        let backs = []
+        if (!node) {
+            return backs
+        }
+        let stack = [node]
+        while (stack.length) {
+            let currentNode = stack.pop()
+            backs.unshift(currentNode.data)
+            currentNode.leftChild && stack.push(currentNode.leftChild)
+            currentNode.rightChild && stack.push(currentNode.rightChild)
+        }
+        return backs
+    }
+
+
+
+    // 非递归实现
+    postOrderTraverse4 (node) {
+        let backs = []
+        if (!node) {
+            return backs
+        }
+        let stack = [node]
+        let currentNode = node
+        let visitedNode = null
+        while (stack.length) {
+            if (currentNode) {
+                stack.push(currentNode)
+                currentNode = currentNode.leftChild
+            } else {
+                currentNode = stack[stack.length - 1]
+                if (currentNode.rightChild && currentNode.rightChild !== visitedNode) {
+                    currentNode = currentNode.rightChild
+                } else {
+                    backs.push(currentNode.data)
+                    visitedNode = currentNode
+                    stack.pop()
+                    currentNode = null
+                }
+
+            }
+        }
         return backs
     }
 
@@ -261,6 +369,26 @@ class BinaryTree extends HeapSort {
         return backs
     }
 
+    // 非递归实现
+    inOrderTraverse2 (node) {
+        let backs = []
+        if (!node) {
+            return backs
+        }
+        let stack = [node]
+        let currentNode = node
+        while (stack.length) {
+            if (currentNode) {
+                stack.push(currentNode)
+                currentNode = currentNode.leftChild
+            } else {
+                currentNode = stack.pop()
+                backs.push(currentNode.data)
+                currentNode = currentNode.rightChild
+            }
+        }
+    }
+
     /**
      * @description 深度优先递归
      * @param tree {Node}
@@ -270,6 +398,7 @@ class BinaryTree extends HeapSort {
         // 分层，每层放一个数组
         let buckets = [[tree]]
         let i = 0
+
         // 递归，
         function tempFunction (node, i) {
             i++
@@ -295,11 +424,134 @@ class BinaryTree extends HeapSort {
 
         tempFunction(tree, 0)
         let backs = []
-        buckets.forEach(bucket=>{
-            backs.push(...bucket.map((node)=>node.data))
+        buckets.forEach(bucket => {
+            backs.push(...bucket.map((node) => node.data))
         })
-        return  backs
+        return backs
     }
 
+    /**
+     * 先序遍历，翻转二叉树
+     * @param node
+     */
+    reverseTree (node = this.tree) {
+        if (node && node.data) {
+            [node.leftChild, node.rightChild] = [node.rightChild, node.leftChild]
+            this.reverseTree(node.leftChild)
+            this.reverseTree(node.rightChild)
+        }
+        return node
+    }
+
+    /**
+     * 层序遍历，翻转二叉树
+     * @param node
+     */
+    reverseTree2 (node = this.tree) {
+        let buckets = [[node]]
+        let i = 0
+
+        function getChildNode (root, i) {
+            if (!root || !root.data) {
+                return false
+            }
+            i++
+            if (buckets[i] === undefined) {
+                buckets[i] = []
+            }
+            if (root.leftChild) {
+                buckets[i].push(root.leftChild)
+                getChildNode(root.leftChild, i)
+            }
+            if (root.rightChild) {
+                buckets[i].push(root.rightChild)
+                getChildNode(root.rightChild, i)
+            }
+        }
+
+        getChildNode(node, i)
+        for (let i = 0; i < buckets.length; i++) {
+            for (let j = 0; j < buckets[i].length; j++) {
+                if (i > 1) {
+                    let parentIndex = buckets[i - 1].length - 1 - Math.floor(i / 2)
+                    buckets[i][j]['parent'] = buckets[i - 1][parentIndex]
+                }
+                buckets[i + 1].reverse()
+                let leftChildIndex = i * 2
+                let rightChildIndex = i * 2 + 1
+                if (buckets[i + 1][leftChildIndex]) {
+                    buckets[i][j]['leftChild'] = buckets[i + 1][leftChildIndex]
+                }
+                if (buckets[i + 1][rightChildIndex]) {
+                    buckets[i][j]['rightChild'] = buckets[i + 1][rightChildIndex]
+                }
+                if (i === buckets.length - 1) {
+                    break
+                }
+
+            }
+
+        }
+        return node
+    }
+
+
+    reverseTree3 (node) {
+        if (!node) {
+            return 0
+        }
+        let queue = [node]
+        while (queue.length) {
+            let temp = queue.shift();
+            [temp.leftChild, temp.rightChild] = [temp.rightChild, temp.leftChild]
+            temp.leftChild && queue.push(temp.leftChild)
+            temp.rightChild && queue.push(temp.rightChild)
+        }
+        return node
+    }
+
+    getTreeDepth (node) {
+
+        let leftD = 1
+        let rightD = 1
+
+        function getDeep (node) {
+            if (!node || !node.data) {
+                return 0
+            }
+            if (node.leftChild) {
+                leftD++
+                getDeep(node.leftChild)
+            }
+            if (node.rightChild) {
+                rightD++
+                getDeep(node.rightChild)
+            }
+        }
+
+        return leftD > rightD ? leftD : rightD
+    }
+
+    getTreeWidth (node) {
+        let queue = [node]
+        let max = 1
+        let width = queue.length
+        while (queue.length) {
+            width = queue.length
+            while (width) {
+                let temp = queue.shift()
+                if (temp.leftChild) {
+                    queue.push(temp.leftChild)
+                }
+                if (temp.rightChild) {
+                    queue.push(temp.rightChild)
+                }
+                width--
+            }
+            max = queue.length > max ? queue.length : max
+        }
+        return max
+    }
 }
-module.exports=BinaryTree
+
+module.exports = BinaryTree
